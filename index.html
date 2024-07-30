@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dAS Bag Reconciliation Scanner</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/en/3/30/Dnata_logo.svg" alt="Dnata Logo" class="logo">
+        <h1>dAS Bag Reconciliation Scanner<h1>
+        <div class="collapsible-section">
+            <button class="collapsible">Rush</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagRush" onkeypress="handleKeyPress(event, 'Rush')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Rush')">Process Tag</button>
+                    <div id="lastTagInputRush" class="last-tag"></div>
+                    <div id="tagsContainerRush" class="tags-container"></div>
+                    <div id="counterRush" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Rush')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Rush')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Failed To Collect</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagFailed" onkeypress="handleKeyPress(event, 'Failed')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Failed')">Process Tag</button>
+                    <div id="lastTagInputFailed" class="last-tag"></div>
+                    <div id="tagsContainerFailed" class="tags-container"></div>
+                    <div id="counterFailed" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Failed')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Failed')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Interline</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagInterline" onkeypress="handleKeyPress(event, 'Interline')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Interline')">Process Tag</button>
+                    <div id="lastTagInputInterline" class="last-tag"></div>
+                    <div id="tagsContainerInterline" class="tags-container"></div>
+                    <div id="counterInterline" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Interline')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Interline')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Other</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagOther" onkeypress="handleKeyPress(event, 'Other')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Other')">Process Tag</button>
+                    <div id="lastTagInputOther" class="last-tag"></div>
+                    <div id="tagsContainerOther" class="tags-container"></div>
+                    <div id="counterOther" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Other')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Other')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Umar Q</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
