@@ -421,67 +421,88 @@ function handleKeyPress(event, category) {
     }
 }
 
-// Update popup functionality
-function showUpdatePopup() {
+// Mobile-friendly modal functionality
+function showUpdateModal() {
     const dontShowAgain = localStorage.getItem('bagTagDontShowUpdate');
     if (!dontShowAgain) {
-        const popup = document.getElementById('updatePopup');
-        popup.style.display = 'block';
-        document.body.classList.add('popup-open');
+        const modal = document.getElementById('updateModal');
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
         
-        // Add a small delay for mobile devices to ensure smooth animation
+        // Add animation
         setTimeout(() => {
-            popup.style.opacity = '1';
+            modal.style.opacity = '1';
         }, 10);
     }
 }
 
-function closeUpdatePopup() {
-    const popup = document.getElementById('updatePopup');
-    popup.style.display = 'none';
-    document.body.classList.remove('popup-open');
+function closeUpdateModal() {
+    const modal = document.getElementById('updateModal');
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
 }
 
 function setDontShowAgain() {
     localStorage.setItem('bagTagDontShowUpdate', 'true');
-    closeUpdatePopup();
+    closeUpdateModal();
 }
 
-// Initialize popup event listeners
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // ... existing DOMContentLoaded code ...
+    // Initialize display with saved data
+    const categories = ['Rush', 'Failed', 'Interline', 'Other'];
+    categories.forEach(category => {
+        displayTags(category);
+        updateCounter(category);
+    });
+
+    // Collapsible sections functionality
+    const collapsibleButtons = document.querySelectorAll('.collapsible');
+    collapsibleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            button.classList.toggle('active');
+            const content = button.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        });
+    });
     
-    // Add popup event listeners
-    const popup = document.getElementById('updatePopup');
-    const closeBtn = document.querySelector('.close-btn');
+    // Modal functionality
+    const modal = document.getElementById('updateModal');
+    const closeBtn = document.getElementById('closeModal');
     const dontShowAgainBtn = document.getElementById('dontShowAgain');
     
+    // Close modal events
     if (closeBtn) {
-        closeBtn.addEventListener('click', closeUpdatePopup);
-        // Add touch event for better mobile support
-        closeBtn.addEventListener('touchend', closeUpdatePopup);
+        closeBtn.addEventListener('click', closeUpdateModal);
+        closeBtn.addEventListener('touchend', closeUpdateModal);
     }
     
+    // Don't show again events
     if (dontShowAgainBtn) {
         dontShowAgainBtn.addEventListener('click', setDontShowAgain);
         dontShowAgainBtn.addEventListener('touchend', setDontShowAgain);
     }
     
-    // Close popup when clicking outside content
-    popup.addEventListener('click', (event) => {
-        if (event.target === popup) {
-            closeUpdatePopup();
-        }
-    });
+    // Close modal when clicking backdrop
+    if (modal) {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeUpdateModal();
+            }
+        });
+        
+        // Also support touch on backdrop
+        modal.addEventListener('touchend', (event) => {
+            if (event.target === modal) {
+                closeUpdateModal();
+            }
+        });
+    }
     
-    // Also support touch events for mobile
-    popup.addEventListener('touchend', (event) => {
-        if (event.target === popup) {
-            closeUpdatePopup();
-        }
-    });
-    
-    // Show popup on first load after update
-    // Small delay to ensure everything is loaded
-    setTimeout(showUpdatePopup, 500);
+    // Show modal after short delay (1 second)
+    setTimeout(showUpdateModal, 1000);
 });
