@@ -137,18 +137,31 @@ footer {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
 }
 
 .popup-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 20px;
     border: 1px solid #888;
     border-radius: 10px;
-    width: 80%;
-    max-width: 500px;
+    width: 85%;
+    max-width: 400px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+    .popup-content {
+        margin: 5% auto;
+        width: 90%;
+        padding: 15px;
+    }
 }
 
 .close-btn {
@@ -158,6 +171,11 @@ footer {
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    border: none;
+    background: none;
 }
 
 .close-btn:hover,
@@ -170,18 +188,31 @@ footer {
 .popup-actions {
     margin-top: 20px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .dont-show-btn {
     background-color: #6c757d;
     color: white;
-    padding: 8px 16px;
+    padding: 12px 16px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
+    min-height: 44px;
+    touch-action: manipulation;
 }
 
 .dont-show-btn:hover {
     background-color: #5a6268;
+}
+
+/* Prevent body scroll when popup is open */
+body.popup-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }

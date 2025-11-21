@@ -427,12 +427,19 @@ function showUpdatePopup() {
     if (!dontShowAgain) {
         const popup = document.getElementById('updatePopup');
         popup.style.display = 'block';
+        document.body.classList.add('popup-open');
+        
+        // Add a small delay for mobile devices to ensure smooth animation
+        setTimeout(() => {
+            popup.style.opacity = '1';
+        }, 10);
     }
 }
 
 function closeUpdatePopup() {
     const popup = document.getElementById('updatePopup');
     popup.style.display = 'none';
+    document.body.classList.remove('popup-open');
 }
 
 function setDontShowAgain() {
@@ -440,26 +447,9 @@ function setDontShowAgain() {
     closeUpdatePopup();
 }
 
+// Initialize popup event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize display with saved data
-    const categories = ['Rush', 'Failed', 'Interline', 'Other'];
-    categories.forEach(category => {
-        displayTags(category);
-        updateCounter(category);
-    });
-
-    const collapsibleButtons = document.querySelectorAll('.collapsible');
-    collapsibleButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            button.classList.toggle('active');
-            const content = button.nextElementSibling;
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
-        });
-    });
+    // ... existing DOMContentLoaded code ...
     
     // Add popup event listeners
     const popup = document.getElementById('updatePopup');
@@ -468,19 +458,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (closeBtn) {
         closeBtn.addEventListener('click', closeUpdatePopup);
+        // Add touch event for better mobile support
+        closeBtn.addEventListener('touchend', closeUpdatePopup);
     }
     
     if (dontShowAgainBtn) {
         dontShowAgainBtn.addEventListener('click', setDontShowAgain);
+        dontShowAgainBtn.addEventListener('touchend', setDontShowAgain);
     }
     
     // Close popup when clicking outside content
-    window.addEventListener('click', (event) => {
+    popup.addEventListener('click', (event) => {
+        if (event.target === popup) {
+            closeUpdatePopup();
+        }
+    });
+    
+    // Also support touch events for mobile
+    popup.addEventListener('touchend', (event) => {
         if (event.target === popup) {
             closeUpdatePopup();
         }
     });
     
     // Show popup on first load after update
-    showUpdatePopup();
+    // Small delay to ensure everything is loaded
+    setTimeout(showUpdatePopup, 500);
 });
