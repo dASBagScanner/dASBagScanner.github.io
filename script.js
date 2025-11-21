@@ -301,19 +301,25 @@ const iataCodes = {
 
 };
 
-let counters = {
+// Load data from localStorage on startup
+let counters = JSON.parse(localStorage.getItem('bagTagCounters')) || {
     Rush: 0,
     Failed: 0,
     Interline: 0,
     Other: 0
 };
 
-let processedTags = {
+let processedTags = JSON.parse(localStorage.getItem('bagTagProcessedTags')) || {
     Rush: [],
     Failed: [],
     Interline: [],
     Other: []
 };
+
+function saveToLocalStorage() {
+    localStorage.setItem('bagTagCounters', JSON.stringify(counters));
+    localStorage.setItem('bagTagProcessedTags', JSON.stringify(processedTags));
+}
 
 function processTag(category) {
     const inputTag = document.getElementById(`inputTag${category}`).value;
@@ -330,10 +336,15 @@ function processTag(category) {
             }
         }
         processedTags[category].push(processedTag);
+        counters[category] = processedTags[category].length;
+        
         displayLastTag(processedTag, category);
         displayTags(category);
         updateCounter(category);
         document.getElementById(`inputTag${category}`).value = '';
+        
+        // Save to localStorage after processing
+        saveToLocalStorage();
     } else {
         alert("IATA code not found.");
     }
@@ -369,8 +380,12 @@ function displayTags(category) {
 
 function removeTag(index, category) {
     processedTags[category].splice(index, 1);
+    counters[category] = processedTags[category].length;
     displayTags(category);
     updateCounter(category);
+    
+    // Save to localStorage after removal
+    saveToLocalStorage();
 }
 
 function updateCounter(category) {
@@ -390,9 +405,13 @@ function copyToClipboard(category) {
 function clearTags(category) {
     if (confirm("Are you sure you want to clear all tags?")) {
         processedTags[category] = [];
+        counters[category] = 0;
         displayTags(category);
         updateCounter(category);
         document.getElementById(`lastTagInput${category}`).textContent = '';
+        
+        // Save to localStorage after clearing
+        saveToLocalStorage();
     }
 }
 
@@ -403,6 +422,13 @@ function handleKeyPress(event, category) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize display with saved data
+    const categories = ['Rush', 'Failed', 'Interline', 'Other'];
+    categories.forEach(category => {
+        displayTags(category);
+        updateCounter(category);
+    });
+
     const collapsibleButtons = document.querySelectorAll('.collapsible');
     collapsibleButtons.forEach(button => {
         button.addEventListener('click', () => {
