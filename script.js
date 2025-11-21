@@ -421,6 +421,25 @@ function handleKeyPress(event, category) {
     }
 }
 
+// Update popup functionality
+function showUpdatePopup() {
+    const dontShowAgain = localStorage.getItem('bagTagDontShowUpdate');
+    if (!dontShowAgain) {
+        const popup = document.getElementById('updatePopup');
+        popup.style.display = 'block';
+    }
+}
+
+function closeUpdatePopup() {
+    const popup = document.getElementById('updatePopup');
+    popup.style.display = 'none';
+}
+
+function setDontShowAgain() {
+    localStorage.setItem('bagTagDontShowUpdate', 'true');
+    closeUpdatePopup();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize display with saved data
     const categories = ['Rush', 'Failed', 'Interline', 'Other'];
@@ -441,4 +460,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    // Add popup event listeners
+    const popup = document.getElementById('updatePopup');
+    const closeBtn = document.querySelector('.close-btn');
+    const dontShowAgainBtn = document.getElementById('dontShowAgain');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeUpdatePopup);
+    }
+    
+    if (dontShowAgainBtn) {
+        dontShowAgainBtn.addEventListener('click', setDontShowAgain);
+    }
+    
+    // Close popup when clicking outside content
+    window.addEventListener('click', (event) => {
+        if (event.target === popup) {
+            closeUpdatePopup();
+        }
+    });
+    
+    // Show popup on first load after update
+    showUpdatePopup();
 });
