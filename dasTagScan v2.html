@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dAS Bag Reconciliation Scanner</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        /* ========== Original CSS (unchanged) ========== */
+        body {
+            font-family: Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px;
+        }
+
+        .logo {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .collapsible-section {
+            margin-bottom: 15px;
+        }
+
+        .collapsible {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+
+        .active, .collapsible:hover {
+            background-color: #0056b3;
+        }
+
+        .content {
+            padding: 0 15px;
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .processing-module {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        button:active {
+            background-color: #003d80;
+            color: white;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag-box {
+            display: flex;
+            align-items: center;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .remove-btn {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .counter {
+            font-size: 14px;
+        }
+
+        .last-tag {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+        }
+
+        /* Mobile-First Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .modal-body {
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-body p {
+            margin: 0 0 15px 0;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary, .btn-secondary {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:active {
+            background: #545b62;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 95%;
+                margin: 0;
+            }
+            .modal-header {
+                padding: 15px;
+            }
+            .modal-body {
+                padding: 15px;
+            }
+            .modal-footer {
+                padding: 12px 15px;
+                flex-direction: column;
+            }
+            .btn-primary, .btn-secondary {
+                min-width: 100%;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .btn-primary:active, .btn-secondary:active {
+                transform: scale(0.98);
+            }
+        }
+
+        /* ========== Scanner overlay ========== */
+        #scanner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 2000;
+        }
+        #scanner-overlay.active {
+            display: block;
+        }
+        #scanner-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #scanner-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .scanner-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: Tahoma, sans-serif;
+            font-size: 16px;
+            text-align: center;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        #scanner-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 2001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        #scanner-close:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Flash toggle button */
+        #flash-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 2001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        #flash-toggle:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        #flash-toggle.active {
+            background: rgba(255, 255, 0, 0.4);
+            color: yellow;
+        }
+
+        /* ========== Bottom Scan Bar ========== */
+        #bottom-scan-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase;
+        }
+        #bottom-scan-bar:hover {
+            background-color: #218838;
+        }
+        #bottom-scan-bar:active {
+            background-color: #1e7e34;
+        }
+        body.scanner-active #bottom-scan-bar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/en/3/30/Dnata_logo.svg" alt="Dnata Logo" class="logo">
+        <h1>dAS Bag Reconciliation Scanner</h1>
+        <div class="collapsible-section">
+            <button class="collapsible">Rush</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagRush" onkeypress="handleKeyPress(event, 'Rush')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Rush')">Process Tag</button>
+                    <div id="lastTagInputRush" class="last-tag"></div>
+                    <div id="tagsContainerRush" class="tags-container"></div>
+                    <div id="counterRush" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Rush')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Rush')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Failed To Collect</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagFailed" onkeypress="handleKeyPress(event, 'Failed')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Failed')">Process Tag</button>
+                    <div id="lastTagInputFailed" class="last-tag"></div>
+                    <div id="tagsContainerFailed" class="tags-container"></div>
+                    <div id="counterFailed" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Failed')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Failed')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Interline</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagInterline" onkeypress="handleKeyPress(event, 'Interline')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Interline')">Process Tag</button>
+                    <div id="lastTagInputInterline" class="last-tag"></div>
+                    <div id="tagsContainerInterline" class="tags-container"></div>
+                    <div id="counterInterline" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Interline')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Interline')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <button class="collapsible">Other</button>
+            <div class="content">
+                <div class="processing-module">
+                    <input type="text" id="inputTagOther" onkeypress="handleKeyPress(event, 'Other')" placeholder="Enter 10-digit bag tag">
+                    <button onclick="processTag('Other')">Process Tag</button>
+                    <div id="lastTagInputOther" class="last-tag"></div>
+                    <div id="tagsContainerOther" class="tags-container"></div>
+                    <div id="counterOther" class="counter">Tags processed: 0</div>
+                    <button onclick="copyToClipboard('Other')">Copy to Clipboard</button>
+                    <button onclick="clearTags('Other')">Clear Tags</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom scan bar (appears when exactly one category is open) -->
+    <button id="bottom-scan-bar" onclick="openScannerForActiveCategory()">Scan</button>
+
+    <!-- Full‑screen scanner overlay (clean feed) -->
+    <div id="scanner-overlay">
+        <div id="scanner-container"></div>
+        <div class="scanner-hint">Point camera at the bag tag barcode</div>
+        <button id="scanner-close" title="Close scanner">✕</button>
+        <button id="flash-toggle" title="Toggle flash">💡</button>
+    </div>
+
+    <footer>
+        <p>Umar Q</p>
+    </footer>
+
+    <!-- Update modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Update!</h3>
+            </div>
+            <div class="modal-body">
+                <p><strong>New Feature:</strong> Your scanned bag tags are now automatically saved to your device!</p>
+                <p>Your data will be saved even if you close the browser or refresh the page.</p>
+                <p> - Umar </p>
+            </div>
+            <div class="modal-footer">
+                <button id="dontShowAgain" class="btn-secondary">Don't Show Again</button>
+                <button id="closeModal" class="btn-primary">Got It!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= IATA CODES (unchanged) =================
+        const iataCodes = {
+            "832": "GB", "390": "A3", "053": "EI", "845": "P5", "555": "SU", "044": "AR",
+            "942": "VW", "139": "AM", "394": "AW", "124": "AH", "514": "G9", "465": "KC",
+            "760": "UU", "657": "BT", "636": "BP", "226": "2J", "381": "SM", "190": "TY",
+            "014": "AC", "427": "TX", "999": "CA", "146": "XK", "101": "EN", "996": "UX",
+            "057": "AF", "730": "GT", "098": "AI", "120": "JS", "675": "NX", "258": "MD",
+            "643": "KM", "239": "MK", "572": "9U", "186": "SW", "086": "NZ", "656": "PX",
+            "694": "YW", "710": "P4", "115": "JU", "061": "HM", "135": "VT", "244": "TN",
+            "197": "TC", "649": "TS", "218": "NF", "580": "RU", "063": "SB", "749": "4Z",
+            "027": "AS", "374": "AP", "055": "AZ", "574": "4W", "110": "UJ", "001": "AA",
+            "205": "NH", "275": "GP", "725": "W3", "238": "IZ", "988": "OZ", "032": "KP",
+            "558": "5O", "767": "RC", "369": "5Y", "143": "AU", "257": "OS", "134": "AV",
+            "133": "LR", "547": "2K", "771": "J2", "331": "S4", "577": "AD", "111": "UP",
+            "926": "QH", "829": "PG", "938": "ID", "628": "B2", "997": "BG", "474": "NT",
+            "475": "0B", "004": "BV", "930": "OB", "276": "TF", "125": "BA", "082": "SN",
+            "623": "FB", "700": "5C", "040": "QC", "188": "K6", "898": "JD", "489": "W8",
+            "172": "CV", "106": "BW", "021": "V3", "160": "CX", "203": "5J", "297": "CI",
+            "112": "CK", "781": "MU", "987": "G5", "804": "CF", "784": "CZ", "689": "WX",
+            "881": "DE", "582": "8Z", "230": "CM", "395": "XC", "923": "SS", "831": "OU",
+            "136": "CU", "078": "CY", "064": "OK", "006": "DL", "936": "D0", "155": "ES",
+            "467": "T3", "077": "MS", "114": "LY", "176": "EK", "071": "ET", "607": "EY",
+            "551": "YU", "615": "QY", "104": "EW", "695": "BR", "783": "E9", "023": "FX",
+            "260": "FJ", "105": "AY", "141": "FZ", "171": "FT", "593": "XY", "None": "FH",
+            "396": "BF", "666": "FU", "126": "GA", "606": "A9", "944": "WH", "127": "G3",
+            "072": "GF", "872": "GX", "169": "HR", "880": "HU", "173": "HA", "836": "NS",
+            "HFY": "5K", "828": "RH", "851": "HX", "128": "UO", "075": "IB", "108": "FI",
+            "312": "6E", "837": "4O", "096": "IR", "491": "B9", "815": "EP", "818": "6H",
+            "131": "JL", "353": "NU", "486": "J9", "806": "7C", "279": "B6", "718": "LJ",
+            "151": "R5", "018": "HO", "384": "RQ*", "706": "KQ", "074": "KL", "180": "KE",
+            "833": "KY", "229": "KU", "068": "TM", "627": "QV", "957": "JJ", "035": "4C",
+            "462": "XL", "045": "LA", "692": "PZ", "544": "LP", "549": "M3", "145": "UC",
+            "140": "LI", "891": "GJ", "080": "LO", "859": "8L", "220": "LH", "020": "LH",
+            "683": "CL", "149": "LG", "537": "W5", "232": "MH", "816": "OD", "803": "AE",
+            "129": "MP", "865": "M7", "495": "L6", "076": "ME", "289": "OM", "716": "MB",
+            "409": "YM", "599": "8M", "933": "KZ", "703": "NO", "477": "NE", "325": "NP",
+            "316": "5N", "476": "Y7", "216": "N4", "796": "BJ", "866": "BK", "050": "OA",
+            "910": "WY", "066": "8Q", "OLA": "OF", "445": "ZP", "770": "EO", "624": "PC",
+            "685": "NI", "079": "PR", "214": "PK", "403": "PO", "408": "M4", "031": "PW",
+            "433": "P6", "081": "QF", "157": "QR", "QAZ": "IQ", "195": "FV", "147": "AT",
+            "672": "BI", "512": "RJ", "299": "DR", "362": "7R", "459": "WB", "421": "S7",
+            "640": "FA", "117": "SK", "737": "SP", "065": "SV", "571": "6S", "655": "DV",
+            "921": "O3", "324": "SC", "774": "FM", "479": "ZH", "876": "3U", "501": "7L",
+            "629": "MI", "618": "SQ", "605": "H2", "193": "IE", "413": "SZ", "083": "SA",
+            "775": "SG", "603": "UL", "564": "XQ", "871": "Y8", "192": "PY", "724": "LX",
+            "070": "RB", "722": "TW", "118": "DT", "202": "TA", "696": "VR", "047": "TP",
+            "281": "RO", "515": "SF", "217": "TG", "310": "SL", "909": "WE", "826": "GS",
+            "617": "X3", "199": "TU", "235": "TK", "566": "PS", "525": "B7", "016": "UA",
+            "406": "5X", "262": "U6", "886": "UQ", "298": "UT", "250": "HY", "978": "VJ",
+            "738": "VN", "932": "VS", "795": "VA", "228": "UK", "036": "Y4", "712": "V7",
+            "030": "VY", "460": "EB", "847": "PN", "838": "WS", "097": "WI", "701": "WF",
+            "731": "MF", "860": "YG", "000": "XH", "668": "TR", "041": "JQ"
+        };
+
+        // ================= STATE & STORAGE =================
+        let counters = JSON.parse(localStorage.getItem('bagTagCounters')) || {
+            Rush: 0, Failed: 0, Interline: 0, Other: 0
+        };
+        let processedTags = JSON.parse(localStorage.getItem('bagTagProcessedTags')) || {
+            Rush: [], Failed: [], Interline: [], Other: []
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('bagTagCounters', JSON.stringify(counters));
+            localStorage.setItem('bagTagProcessedTags', JSON.stringify(processedTags));
+        }
+
+        // ================= TAG PROCESSING =================
+        function processTag(category, tagValue = null, skipConfirm = false) {
+            let inputTag;
+            if (tagValue !== null) {
+                inputTag = tagValue;
+            } else {
+                inputTag = document.getElementById(`inputTag${category}`).value;
+            }
+
+            if (inputTag.length !== 10 || isNaN(inputTag)) {
+                alert("Please enter a valid 10-digit bag tag number.");
+                return false;
+            }
+
+            const processedTag = transformTag(inputTag);
+            if (processedTag) {
+                if (processedTags[category].includes(processedTag)) {
+                    if (!skipConfirm) {
+                        if (!confirm(`The tag "${processedTag}" has already been inputted. Do you want to add it again?`)) {
+                            return false;
+                        }
+                    }
+                }
+                processedTags[category].push(processedTag);
+                counters[category] = processedTags[category].length;
+
+                displayLastTag(processedTag, category);
+                displayTags(category);
+                updateCounter(category);
+
+                if (tagValue === null) {
+                    document.getElementById(`inputTag${category}`).value = '';
+                }
+                saveToLocalStorage();
+                return true;
+            } else {
+                alert("IATA code not found.");
+                return false;
+            }
+        }
+
+        function transformTag(tag) {
+            const digits = tag.slice(1);
+            const code = digits.slice(0, 3);
+            const rest = digits.slice(3);
+            if (iataCodes[code]) {
+                return `${iataCodes[code]}${rest}`;
+            }
+            return null;
+        }
+
+        function displayLastTag(tag, category) {
+            const lastTagDiv = document.getElementById(`lastTagInput${category}`);
+            lastTagDiv.textContent = `Last tag inputted: ${tag}`;
+        }
+
+        function displayTags(category) {
+            const tagsContainer = document.getElementById(`tagsContainer${category}`);
+            tagsContainer.innerHTML = '';
+            processedTags[category].forEach((tag, index) => {
+                const tagBox = document.createElement('div');
+                tagBox.className = 'tag-box';
+                tagBox.innerHTML = `<span>${tag}</span><button class="remove-btn" onclick="removeTag(${index}, '${category}')">&times;</button>`;
+                tagsContainer.appendChild(tagBox);
+            });
+        }
+
+        function removeTag(index, category) {
+            processedTags[category].splice(index, 1);
+            counters[category] = processedTags[category].length;
+            displayTags(category);
+            updateCounter(category);
+            saveToLocalStorage();
+        }
+
+        function updateCounter(category) {
+            const counterDiv = document.getElementById(`counter${category}`);
+            counterDiv.textContent = `Tags processed: ${processedTags[category].length}`;
+        }
+
+        function copyToClipboard(category) {
+            const tagsString = processedTags[category].join('/');
+            navigator.clipboard.writeText(tagsString).then(() => {
+                alert('Tags copied to clipboard!');
+            }, () => {
+                alert('Failed to copy tags.');
+            });
+        }
+
+        function clearTags(category) {
+            if (confirm("Are you sure you want to clear all tags?")) {
+                processedTags[category] = [];
+                counters[category] = 0;
+                displayTags(category);
+                updateCounter(category);
+                document.getElementById(`lastTagInput${category}`).textContent = '';
+                saveToLocalStorage();
+            }
+        }
+
+        function handleKeyPress(event, category) {
+            if (event.key === 'Enter') {
+                processTag(category);
+            }
+        }
+
+        // ================= SCANNER INTEGRATION (BarcodeDetector + fallback + auto-zoom + manual flash) =================
+        let currentScanCategory = null;
+        let html5QrCode = null;
+        let isScanning = false;
+        let startingScanner = false;
+        let barcodeDetector = null;
+        let videoStream = null;
+        let scanInterval = null;
+        let videoTrack = null;          // track for zoom/flash control
+        let currentZoomLevel = 1;       // initial zoom
+        const zoomStep = 0.5;           // increase zoom by 0.5 each step
+        const maxZoom = 3.0;            // max zoom (if supported)
+        let zoomTimer = null;           // timer for auto-zoom
+
+        // Flash state
+        let flashEnabled = false;
+
+        async function openScanner(category) {
+            if (startingScanner || isScanning) return;
+
+            startingScanner = true;
+            currentScanCategory = category;
+            document.getElementById('scanner-overlay').classList.add('active');
+            document.body.classList.add('scanner-active');
+            document.body.style.overflow = 'hidden';
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Cleanup previous state
+            if (html5QrCode) {
+                try { if (isScanning) await html5QrCode.stop(); } catch(e) {}
+                html5QrCode = null;
+            }
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+            }
+            if (zoomTimer) {
+                clearTimeout(zoomTimer);
+                zoomTimer = null;
+            }
+            isScanning = false;
+            videoTrack = null;
+            currentZoomLevel = 1;
+            flashEnabled = false;
+            updateFlashButton();
+            document.getElementById('scanner-container').innerHTML = '';
+
+            // Check BarcodeDetector support
+            if ('BarcodeDetector' in window) {
+                barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'itf', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_93', 'codabar', 'data_matrix'] });
+                try {
+                    await startManualStream();
+                } catch (err) {
+                    console.warn("Manual stream failed, falling back to html5-qrcode:", err);
+                    await startFallbackScanner();
+                }
+            } else {
+                await startFallbackScanner();
+            }
+            startingScanner = false;
+        }
+
+        async function startManualStream() {
+            // Request camera with high resolution and continuous focus
+            const constraints = {
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    focusMode: { ideal: 'continuous' }
+                },
+                audio: false
+            };
+            videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+            videoTrack = videoStream.getVideoTracks()[0];
+            const video = document.createElement('video');
+            video.srcObject = videoStream;
+            video.setAttribute('playsinline', '');
+            video.muted = true;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'cover';
+            document.getElementById('scanner-container').appendChild(video);
+            await video.play();
+
+            isScanning = true;
+            startBarcodeDetection(video);
+            // Start auto-zoom timer (will increase zoom after 2 seconds if no decode)
+            scheduleZoomIncrease();
+        }
+
+        function startBarcodeDetection(video) {
+            if (!barcodeDetector) return;
+            scanInterval = setInterval(async () => {
+                if (!isScanning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                try {
+                    const barcodes = await barcodeDetector.detect(video);
+                    if (barcodes.length > 0) {
+                        // Clear zoom timer because we found a barcode
+                        if (zoomTimer) {
+                            clearTimeout(zoomTimer);
+                            zoomTimer = null;
+                        }
+                        const rawValue = barcodes[0].rawValue;
+                        if (isScanning && currentScanCategory) {
+                            onScanSuccess(rawValue);
+                        }
+                    }
+                } catch (err) {
+                    // Detection errors are common; ignore
+                }
+            }, 200);
+        }
+
+        function scheduleZoomIncrease() {
+            if (!videoTrack || !videoTrack.getCapabilities) return;
+            const capabilities = videoTrack.getCapabilities();
+            if (!capabilities.zoom) return; // no zoom support
+
+            zoomTimer = setTimeout(async () => {
+                if (!isScanning) return;
+                if (currentZoomLevel < maxZoom) {
+                    const newZoom = Math.min(currentZoomLevel + zoomStep, maxZoom);
+                    try {
+                        await videoTrack.applyConstraints({ advanced: [{ zoom: newZoom }] });
+                        currentZoomLevel = newZoom;
+                        console.log("Zoom increased to", currentZoomLevel);
+                    } catch (e) {
+                        console.warn("Could not apply zoom:", e);
+                    }
+                }
+                // Schedule next increase
+                scheduleZoomIncrease();
+            }, 2000); // increase every 2 seconds
+        }
+
+        function toggleFlash() {
+            if (!videoTrack || !videoTrack.getCapabilities) {
+                alert("Flash not supported on this device.");
+                return;
+            }
+            const capabilities = videoTrack.getCapabilities();
+            if (!capabilities.torch) {
+                alert("Flash not supported on this device.");
+                return;
+            }
+            flashEnabled = !flashEnabled;
+            try {
+                videoTrack.applyConstraints({ advanced: [{ torch: flashEnabled }] });
+            } catch (e) {
+                console.warn("Error toggling flash:", e);
+                flashEnabled = !flashEnabled; // revert
+            }
+            updateFlashButton();
+        }
+
+        function updateFlashButton() {
+            const btn = document.getElementById('flash-toggle');
+            if (flashEnabled) {
+                btn.classList.add('active');
+                btn.textContent = '💡'; // or a different icon
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '💡';
+            }
+        }
+
+        async function startFallbackScanner() {
+            html5QrCode = new Html5Qrcode("scanner-container");
+            const config = {
+                fps: 10,
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                    Html5QrcodeSupportedFormats.RSS_14,
+                    Html5QrcodeSupportedFormats.RSS_EXPANDED
+                ]
+            };
+
+            const devices = await Html5Qrcode.getCameras();
+            if (!devices || devices.length === 0) throw new Error("No camera found.");
+            let selectedCameraId = devices[0].id;
+            for (let device of devices) {
+                const label = device.label.toLowerCase();
+                if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
+                    selectedCameraId = device.id;
+                    break;
+                }
+            }
+            await html5QrCode.start(selectedCameraId, config, onScanSuccess, onScanFailure);
+            isScanning = true;
+            // No zoom in fallback (html5-qrcode doesn't expose track)
+        }
+
+        async function stopScanner() {
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+            }
+            if (zoomTimer) {
+                clearTimeout(zoomTimer);
+                zoomTimer = null;
+            }
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            if (html5QrCode && isScanning) {
+                try { await html5QrCode.stop(); } catch(e) {}
+                html5QrCode = null;
+            }
+            videoTrack = null;
+            isScanning = false;
+            currentScanCategory = null;
+        }
+
+        function closeScanner() {
+            stopScanner().then(() => {
+                document.getElementById('scanner-overlay').classList.remove('active');
+                document.body.classList.remove('scanner-active');
+                document.body.style.overflow = '';
+                startingScanner = false;
+            });
+        }
+
+        function processScannedTag(category, scannedText) {
+            if (scannedText.length !== 10 || isNaN(scannedText)) {
+                alert("Invalid barcode: must be 10 digits.");
+                return false;
+            }
+            const processedTag = transformTag(scannedText);
+            if (!processedTag) {
+                alert("IATA code not found.");
+                return false;
+            }
+            if (processedTags[category].includes(processedTag)) {
+                alert(`Duplicate tag detected: ${processedTag}. Not added.`);
+                return false;
+            }
+            return processTag(category, scannedText, true);
+        }
+
+        function onScanSuccess(decodedText) {
+            if (!isScanning || !currentScanCategory) return;
+            const success = processScannedTag(currentScanCategory, decodedText);
+            if (success) {
+                if (navigator.vibrate) navigator.vibrate(200);
+                closeScanner();
+            }
+            // If false (duplicate/invalid), we leave scanner open. But we don't want to retrigger on same code quickly.
+            // A brief pause to avoid immediate re-detect
+        }
+
+        function onScanFailure(err) {
+            // Do nothing
+        }
+
+        // ================= BOTTOM SCAN BAR =================
+        function updateBottomScanBar() {
+            const contents = document.querySelectorAll('.content');
+            let openCount = 0;
+            let activeCategory = null;
+            contents.forEach(content => {
+                if (content.style.display === 'block') {
+                    openCount++;
+                    const section = content.closest('.collapsible-section');
+                    const collapsibleButton = section.querySelector('.collapsible');
+                    const text = collapsibleButton.textContent.trim();
+                    if (text === 'Rush') activeCategory = 'Rush';
+                    else if (text === 'Failed To Collect') activeCategory = 'Failed';
+                    else if (text === 'Interline') activeCategory = 'Interline';
+                    else if (text === 'Other') activeCategory = 'Other';
+                }
+            });
+            const scanBar = document.getElementById('bottom-scan-bar');
+            if (openCount === 1 && activeCategory) {
+                scanBar.style.display = 'flex';
+                scanBar.dataset.activeCategory = activeCategory;
+            } else {
+                scanBar.style.display = 'none';
+            }
+        }
+
+        function openScannerForActiveCategory() {
+            const scanBar = document.getElementById('bottom-scan-bar');
+            const activeCategory = scanBar.dataset.activeCategory;
+            if (activeCategory) {
+                openScanner(activeCategory);
+            } else {
+                alert("Please expand exactly one category to scan.");
+            }
+        }
+
+        // ================= INITIALIZATION =================
+        document.addEventListener('DOMContentLoaded', () => {
+            const categories = ['Rush', 'Failed', 'Interline', 'Other'];
+            categories.forEach(category => {
+                displayTags(category);
+                updateCounter(category);
+            });
+
+            document.querySelectorAll('.collapsible').forEach(button => {
+                button.addEventListener('click', () => {
+                    button.classList.toggle('active');
+                    const content = button.nextElementSibling;
+                    content.style.display = content.style.display === "block" ? "none" : "block";
+                    updateBottomScanBar();
+                });
+            });
+
+            updateBottomScanBar();
+
+            document.getElementById('scanner-close').addEventListener('click', closeScanner);
+            document.getElementById('bottom-scan-bar').addEventListener('click', openScannerForActiveCategory);
+            document.getElementById('flash-toggle').addEventListener('click', toggleFlash);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.getElementById('scanner-overlay').classList.contains('active')) {
+                    closeScanner();
+                }
+            });
+
+            // Update modal
+            const modal = document.getElementById('updateModal');
+            const closeBtn = document.getElementById('closeModal');
+            const dontShowAgainBtn = document.getElementById('dontShowAgain');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeUpdateModal);
+                closeBtn.addEventListener('touchend', closeUpdateModal);
+            }
+            if (dontShowAgainBtn) {
+                dontShowAgainBtn.addEventListener('click', setDontShowAgain);
+                dontShowAgainBtn.addEventListener('touchend', setDontShowAgain);
+            }
+            if (modal) {
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) closeUpdateModal();
+                });
+                modal.addEventListener('touchend', (event) => {
+                    if (event.target === modal) closeUpdateModal();
+                });
+            }
+
+            setTimeout(showUpdateModal, 1000);
+        });
+
+        function showUpdateModal() {
+            const dontShowAgain = localStorage.getItem('bagTagDontShowUpdate');
+            if (!dontShowAgain) {
+                const modal = document.getElementById('updateModal');
+                modal.style.display = 'block';
+                document.body.classList.add('modal-open');
+                setTimeout(() => { modal.style.opacity = '1'; }, 10);
+            }
+        }
+
+        function closeUpdateModal() {
+            const modal = document.getElementById('updateModal');
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        function setDontShowAgain() {
+            localStorage.setItem('bagTagDontShowUpdate', 'true');
+            closeUpdateModal();
+        }
+    </script>
+</body>
+</html>
