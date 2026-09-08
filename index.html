@@ -462,12 +462,12 @@
     <div id="updateModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>New Update!</h3>
+                <h3>Welcome!</h3>
             </div>
             <div class="modal-body">
-                <p><strong>New Feature:</strong> Your scanned bag tags are now automatically saved to your device!</p>
-                <p>Your data will be saved even if you close the browser or refresh the page.</p>
-                <p> - Umar </p>
+                <p><strong>Instructions:</strong> Please see below </p>
+                <p>To scan a tag, open a bag category and press the green scan button at the bottom of the screen. To copy the tags into a list ready to paste into Findnet, press the "Copy to clipboard button" If you need to type a tag in manually, press the textbox and enter in the 10-digit tag numbe. Your data will be saved even if you close the browser or refresh the page.</p>
+                <p> Thank you! </p>
             </div>
             <div class="modal-footer">
                 <button id="dontShowAgain" class="btn-secondary">Don't Show Again</button>
@@ -665,7 +665,7 @@
         let zoomTimer = null;
         let flashEnabled = false;
         let lastDecodedTime = 0;
-        const decodeCooldown = 2000; // 2 seconds cooldown between successful detections
+        const decodeCooldown = 2000;
 
         async function openScanner(category) {
             if (startingScanner || isScanning) return;
@@ -703,7 +703,6 @@
             updateFlashButton();
             document.getElementById('scanner-container').innerHTML = '';
 
-            // Check BarcodeDetector support
             if ('BarcodeDetector' in window) {
                 barcodeDetector = new BarcodeDetector({
                     formats: ['code_128', 'itf', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_93', 'codabar', 'data_matrix']
@@ -753,13 +752,11 @@
                 if (!isScanning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
                 const now = Date.now();
-                if (now - lastDecodedTime < decodeCooldown) return; // prevent rapid re-detection
+                if (now - lastDecodedTime < decodeCooldown) return;
 
                 try {
-                    // Try normal detection first
                     let barcodes = await barcodeDetector.detect(video);
 
-                    // If no barcodes, try rotating the video for better angle detection
                     if (barcodes.length === 0) {
                         barcodes = await detectWithRotation(video);
                     }
@@ -781,28 +778,22 @@
             }, 200);
         }
 
-        // Try detecting barcode in rotated video frame
         async function detectWithRotation(video) {
             try {
-                // Create a canvas to capture and rotate the video frame
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 canvas.width = video.videoWidth || 1920;
                 canvas.height = video.videoHeight || 1080;
 
-                const rotations = [90, 180, 270]; // degrees to try
+                const rotations = [90, 180, 270];
                 for (let angle of rotations) {
-                    // Clear canvas
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    // Save context and rotate
                     ctx.save();
                     ctx.translate(canvas.width / 2, canvas.height / 2);
                     ctx.rotate(angle * Math.PI / 180);
                     ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
                     ctx.restore();
 
-                    // Try detecting on the rotated canvas
                     const barcodes = await barcodeDetector.detect(canvas);
                     if (barcodes.length > 0) {
                         return barcodes;
@@ -899,7 +890,6 @@
             }
             await html5QrCode.start(selectedCameraId, config, onScanSuccess, onScanFailure);
             isScanning = true;
-            // html5-qrcode handles rotation natively for most barcode formats
         }
 
         async function stopScanner() {
@@ -957,7 +947,6 @@
                 if (navigator.vibrate) navigator.vibrate(200);
                 closeScanner();
             }
-            // If false (duplicate/invalid), scanner stays open but cooldown prevents immediate re-detect
         }
 
         function onScanFailure(err) {
@@ -1000,7 +989,7 @@
             }
         }
 
-        // ================= INITIALIZATION =================
+        // ================= INITIALIZATION (with accordion behavior) =================
         document.addEventListener('DOMContentLoaded', () => {
             const categories = ['Rush', 'Failed', 'Interline', 'Other'];
             categories.forEach(category => {
@@ -1008,11 +997,31 @@
                 updateCounter(category);
             });
 
+            // Accordion behavior for collapsible sections
             document.querySelectorAll('.collapsible').forEach(button => {
                 button.addEventListener('click', () => {
-                    button.classList.toggle('active');
                     const content = button.nextElementSibling;
-                    content.style.display = content.style.display === "block" ? "none" : "block";
+                    const isOpening = content.style.display !== "block";
+
+                    // Close all other sections
+                    document.querySelectorAll('.collapsible-section').forEach(section => {
+                        const btn = section.querySelector('.collapsible');
+                        const cont = section.querySelector('.content');
+                        if (btn !== button && cont.style.display === "block") {
+                            cont.style.display = "none";
+                            btn.classList.remove('active');
+                        }
+                    });
+
+                    // Toggle clicked section
+                    if (isOpening) {
+                        content.style.display = "block";
+                        button.classList.add('active');
+                    } else {
+                        content.style.display = "none";
+                        button.classList.remove('active');
+                    }
+
                     updateBottomScanBar();
                 });
             });
